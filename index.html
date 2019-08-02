@@ -1,0 +1,171 @@
+<html>
+    
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.js"></script>
+    <script src="data.js"></script>
+    <script src="china.js"></script>
+    <link href="https://cdn.bootcss.com/semantic-ui/2.4.1/semantic.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/semantic-ui/2.4.1/semantic.min.js"></script>
+    <script src='province/anhui.js'></script>
+    <script src='province/aomen.js'></script>
+    <script src='province/beijing.js'></script>
+    <script src='province/chongqing.js'></script>
+    <script src='province/fujian.js'></script>
+    <script src='province/gansu.js'></script>
+    <script src='province/guangdong.js'></script>
+    <script src='province/guangxi.js'></script>
+    <script src='province/guizhou.js'></script>
+    <script src='province/hainan.js'></script>
+    <script src='province/hebei.js'></script>
+    <script src='province/heilongjiang.js'></script>
+    <script src='province/henan.js'></script>
+    <script src='province/hubei.js'></script>
+    <script src='province/hunan.js'></script>
+    <script src='province/jiangsu.js'></script>
+    <script src='province/jiangxi.js'></script>
+    <script src='province/jilin.js'></script>
+    <script src='province/liaoning.js'></script>
+    <script src='province/neimenggu.js'></script>
+    <script src='province/ningxia.js'></script>
+    <script src='province/qinghai.js'></script>
+    <script src='province/shandong.js'></script>
+    <script src='province/shanghai.js'></script>
+    <script src='province/shanxi.js'></script>
+    <script src='province/shanxi1.js'></script>
+    <script src='province/sichuan.js'></script>
+    <script src='province/taiwan.js'></script>
+    <script src='province/tianjin.js'></script>
+    <script src='province/xianggang.js'></script>
+    <script src='province/xinjiang.js'></script>
+    <script src='province/xizang.js'></script>
+    <script src='province/yunnan.js'></script>
+    <script src='province/zhejiang.js'></script>
+    <title>
+        qwq
+    </title>
+</head>
+
+<body>
+    <script>
+
+
+
+
+        $(document).ready(() => {
+            const byProvince = new Map();
+            data.forEach((x) => {
+                if (!byProvince.has(x.province)) {
+                    byProvince.set(x.province, {
+                        name: x.province, introduction: "", all: [], trimed() {
+                            return this.introduction.trim();
+                        }, asEchartData() {
+                            return { "name": this.name, value: this.trimed() };
+                        }, byCity() {
+                            const result = new Map();
+                            this.all.forEach(x => {
+                                if (!result.has(x.city)) {
+                                    result.set(x.city, {
+                                        name: x.city, introduction: ""
+                                    });
+                                }
+                                result.get(x.city).introduction += `${x.name} ${x.school}<br>`;
+                            });
+                            return result;
+                        }
+                    });
+                }
+                const current = byProvince.get(x.province);
+                current.introduction += `${x.name} ${x.school}<br>`;
+                current.all.push(x);
+            });
+            const chartData = [];
+            var myChart = echarts.init(document.getElementById('main'));
+            const initOption = {
+                backgroundColor: '#FFFFFF',
+                title: {
+                    text: '全国地图',
+                    subtext: '',
+                    x: 'center'
+                }, grid: {
+                    left: '8%',
+                    right: '0',
+                    bottom: '1%',
+                    containLabel: true
+                },
+                tooltip: {
+                    trigger: 'item', formatter: (params, ticket, callback) => {
+                        return `${params.name}<br>${byProvince.get(params.name) ? byProvince.get(params.name).trimed() : "无"}`;
+                    }
+                },
+                //配置属性
+                series: [{
+                    name: '全国',
+                    type: 'map',
+                    mapType: 'china',
+                    roam: true,
+                    label: {
+                        normal: {
+                            show: true
+                        },
+                        emphasis: {
+                            show: true
+                        }
+                    }
+                }]
+            };
+            myChart.setOption(initOption);
+            const showProvince = (province) => {
+                myChart.setOption({
+                    backgroundColor: '#FFFFFF',
+                    title: {
+                        text: province,
+                        subtext: '',
+                        x: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item', formatter: (params, ticket, callback) => {
+                            return `${params.name}<br>${byProvince.get(province).byCity().get(params.name) ? byProvince.get(province).byCity().get(params.name).introduction : "无"}`;
+                        }
+                    },
+
+                    //配置属性
+                    series: [{
+                        name: '省',
+                        type: 'map',
+                        mapType: province,
+                        roam: true,
+                        label: {
+                            normal: {
+                                show: true
+                            },
+                            emphasis: {
+                                show: true
+                            }
+                        }
+                    }]
+                });
+            };
+            myChart.on("click", (arg) => {
+                console.log(arg);
+
+                if (arg.seriesName == "省") {
+                    myChart.clear();
+                    myChart.setOption(initOption);
+                } else
+                    if (byProvince.has(arg.name)) {
+                        myChart.clear();
+                        showProvince(arg.name);
+                    }
+            });
+        });
+
+    </script>
+    <div id="main" style="height: 100%;width: 100%;">
+
+    </div>
+
+</body>
+
+</html>
